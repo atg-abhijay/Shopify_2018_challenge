@@ -6,7 +6,7 @@ db = TinyDB('db.json')
 menus = db.table('menus')
 base_url = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=1&page="
 
-def main():
+def build_menus():
     iterations = extract_iterations()
     # print(iterations)
     # TODO if iterations == 1, then
@@ -18,6 +18,7 @@ def main():
         data = r.json()
         menus_value = data['menus']
         for menu_entry in menus_value:
+            menu_entry['visited'] = False
             menus.insert(menu_entry)
 
     print(menus.all())
@@ -45,6 +46,6 @@ def test():
 
 
 purge()
-main()
+build_menus()
 # test()
 
