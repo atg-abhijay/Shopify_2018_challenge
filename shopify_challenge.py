@@ -1,18 +1,18 @@
 import math
+from pprint import pprint
 import requests
 from tinydb import TinyDB, Query
-from pprint import pprint
 
 db = TinyDB('db.json')
 menus = db.table('menus')
-result = {'valid_menus': [], 'invalid_menus': []}
+result_json = {'valid_menus': [], 'invalid_menus': []}
 base_url = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=1&page="
 
+# sending requests and
+# building the menus table
 def build_menus():
     iterations = extract_iterations()
     # print(iterations)
-    # TODO if iterations == 1, then
-    # loop will not run
     for page_num in range(1, iterations+1):
         url = base_url + str(page_num)
         r = requests.get(url)
@@ -23,39 +23,54 @@ def build_menus():
             menu_entry['visited'] = False
             menus.insert(menu_entry)
 
-    print(menus.all())
+    # print(menus.all())
 
 def generate_result():
-    all_menus = menus.all()
     # obtaining the top-level nodes
+    # (menus without parent ids)
     menu_query = Query()
     top_nodes = menus.search(~ menu_query.parent_id.exists())
-    all_paths = []
     for menu in top_nodes:
+        # list of ids forming a path
         path = []
-        if menu['visited'] == "false":
-            menu['visited'] = "true"
-            # adding top level id to path
-            path.append(menu['id'])
-            for child_id in menu['child_ids']:
-                path.append(child_id)
-                child_menu = menus.get(doc_id=child_id)
-                if child_menu['visited'] == "true"
+        updated_menu_id = menus.update({'visited': True}, menu_query.id == menu['id'])[0]
+        # adding top level id to path
+        path.append(updated_menu_id)
+        isValid = check_children(menus.get(menu_query.id == updated_menu_id), path)
+        if isValid:
+            add_to_valid_menus(path)
 
+    menus.update({'visited': False})
+    pprint(result_json)
 
+def check_children(menu, path):
+    valid_boolean = False
+    menu_query = Query()
+    for child_id in menu['child_ids']:
+        # adding child id to list of ids
+        path.append(child_id)
+        child_menu = menus.get(doc_id=child_id)
+        if child_menu['visited']:
+            add_to_invalid_menus(path)
+        elif len(child_menu['child_ids']) == 0:
+            menus.update({'visited': True}, menu_query.id == child_id)
+            valid_boolean = True
+            # add_to_valid_menus(path)
+        else:
+            menus.update({'visited': True}, menu_query.id == child_id)
+            check_children(menus.get(menu_query.id == child_id), path)
 
-    # queue.append(all_menus[0])
-    # print(queue)
+    return valid_boolean
 
 def add_to_invalid_menus(ids_list):
-    invalids = result['invalid_menus']
+    invalids = result_json['invalid_menus']
     root_id = ids_list[0]
     children = ids_list[1:]
     invalids.append({'root_id': root_id, 'children': children})
 
 
 def add_to_valid_menus(ids_list):
-    valids = result['valid_menus']
+    valids = result_json['valid_menus']
     root_id = ids_list[0]
     children = ids_list[1:]
     valids.append({'root_id': root_id, 'children': children})
@@ -76,19 +91,20 @@ def purge():
 def test():
     # x = 5
     # y = 15
-    # result = math.ceil(y/x)
-    # print(result)
+    # num_iterations = math.ceil(y/x)
+    # print(num_iterations)
 
-    # for i in range(1,3):
+    # for i in range(1, 2):
     #     print(i)
 
+    menu_query = Query()
+    example_id = 2
+    return_val = menus.update({'visited': True}, menu_query.id == example_id)[0]
+    print(return_val)
 
-    result = menus.search(~ menu_query.parent_id.exists())
-    pprint(result)
+    print(menus.get(menu_query.id == 2))
 
-
-# purge()
-# build_menus()
-# generate_result()
-test()
-
+purge()
+build_menus()
+generate_result()
+# test()
