@@ -63,6 +63,7 @@ def check_children(menu, path):
     return valid_boolean
 
 def add_to_invalid_menus(ids_list):
+    ids_list.sort()
     invalids = result_json['invalid_menus']
     root_id = ids_list[0]
     children = ids_list[1:]
@@ -70,6 +71,7 @@ def add_to_invalid_menus(ids_list):
 
 
 def add_to_valid_menus(ids_list):
+    ids_list.sort()
     valids = result_json['valid_menus']
     root_id = ids_list[0]
     children = ids_list[1:]
