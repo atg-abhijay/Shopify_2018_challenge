@@ -6,7 +6,7 @@ from tinydb import TinyDB, Query
 db = TinyDB('db.json')
 menus = db.table('menus')
 result_json = {'valid_menus': [], 'invalid_menus': []}
-base_url = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=1&page="
+base_url = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=2&page="
 
 # sending requests and
 # building the menus table
@@ -39,6 +39,8 @@ def generate_result():
         isValid = check_children(menus.get(menu_query.id == updated_menu_id), path)
         if isValid:
             add_to_valid_menus(path)
+        else:
+            add_to_invalid_menus(path)
 
     menus.update({'visited': False})
     pprint(result_json)
@@ -51,7 +53,8 @@ def check_children(menu, path):
         path.append(child_id)
         child_menu = menus.get(doc_id=child_id)
         if child_menu['visited']:
-            add_to_invalid_menus(path)
+            valid_boolean = False
+            # add_to_invalid_menus(path)
         elif len(child_menu['child_ids']) == 0:
             menus.update({'visited': True}, menu_query.id == child_id)
             valid_boolean = True
@@ -63,7 +66,7 @@ def check_children(menu, path):
     return valid_boolean
 
 def add_to_invalid_menus(ids_list):
-    ids_list.sort()
+    # ids_list.sort()
     invalids = result_json['invalid_menus']
     root_id = ids_list[0]
     children = ids_list[1:]
@@ -71,7 +74,7 @@ def add_to_invalid_menus(ids_list):
 
 
 def add_to_valid_menus(ids_list):
-    ids_list.sort()
+    # ids_list.sort()
     valids = result_json['valid_menus']
     root_id = ids_list[0]
     children = ids_list[1:]
