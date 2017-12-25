@@ -1,3 +1,4 @@
+import sys
 import math
 from pprint import pprint
 import requests
@@ -6,7 +7,7 @@ from tinydb import TinyDB, Query
 db = TinyDB('db.json')
 menus = db.table('menus')
 result_json = {'valid_menus': [], 'invalid_menus': []}
-base_url = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=2&page="
+base_url = "url decided from run() method"
 
 # sending requests and
 # building the menus table
@@ -16,7 +17,7 @@ def build_menus():
     for page_num in range(1, iterations+1):
         url = base_url + str(page_num)
         r = requests.get(url)
-        print(r.status_code)
+        # print(r.status_code)
         data = r.json()
         menus_value = data['menus']
         for menu_entry in menus_value:
@@ -93,22 +94,37 @@ def extract_iterations():
 def purge():
     menus.purge()
 
-def test():
-    # x = 5
-    # y = 15
-    # num_iterations = math.ceil(y/x)
-    # print(num_iterations)
+# def test():
+#     x = 5
+#     y = 15
+#     num_iterations = math.ceil(y/x)
+#     print(num_iterations)
 
-    # for i in range(1, 2):
-    #     print(i)
+#     for i in range(1, 2):
+#         print(i)
 
-    menu_query = Query()
-    example_id = 2
-    return_val = menus.update({'visited': True}, menu_query.id == example_id)[0]
-    print(return_val)
+#     menu_query = Query()
+#     example_id = 2
+#     return_val = menus.update({'visited': True}, menu_query.id == example_id)[0]
+#     print(return_val)
 
-    print(menus.get(menu_query.id == 2))
+#     print(menus.get(menu_query.id == 2))
+#     print(sys.argv[1])
 
+def run():
+    global base_url
+    challenge_number = sys.argv[1]
+    if challenge_number == "1":
+        base_url = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=1&page="
+        # print(base_url)
+    elif challenge_number == "2":
+        base_url = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=2&page="
+        # print(base_url)
+    else:
+        print("Please enter either 1 or 2")
+        sys.exit(1)
+
+run()
 purge()
 build_menus()
 generate_result()
