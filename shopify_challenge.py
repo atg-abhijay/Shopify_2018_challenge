@@ -37,44 +37,91 @@ def build_menus():
     # the menus table is now complete
     # (with the additional 'visited' field)
 
+
+# method where all the 'calculations' are
+# performed to identify valid and invalid menus
 def generate_result():
     # obtaining the top-level nodes
-    # (menus without parent ids)
+    # (menus without parent ids).
+    # these nodes will serve as root nodes
+
+    # creating a query object
     menu_query = Query()
+    # searching for entities in the
+    # menus table which do not have a
+    # parent_id field
     top_nodes = menus.search(~ menu_query.parent_id.exists())
     for menu in top_nodes:
         # list of ids forming a path
         path = []
+        # update the database and set the 'visited'
+        # status of the top_node to True
         updated_menu_id = menus.update({'visited': True}, menu_query.id == menu['id'])[0]
-        # adding top level id to path
+        # adding the id of top_node to path
         path.append(updated_menu_id)
+        # calling check_children() with the current
+        # top_node and the path. it traverses through
+        # all the children rooted at the top_node and
+        # returns a boolean value telling us whether
+        # the menu is valid or invalid
         isValid = check_children(menus.get(menu_query.id == updated_menu_id), path)
         if isValid:
+            # add path to valid_menus
             add_to_valid_menus(path)
         else:
+            # add path to invalid_menus
             add_to_invalid_menus(path)
 
-    menus.update({'visited': False})
+    # menus.update({'visited': False})
+
+    # printing the final result
     pprint(result_json)
 
+
+# traverses through the children of
+# any menu and appends the ids of the
+# visited menus to the path
+#
+# in the end it returns a boolean value
+# indicating whether the path denotes a
+# valid menu or an invalid menu
 def check_children(menu, path):
     valid_boolean = False
     menu_query = Query()
     for child_id in menu['child_ids']:
-        # adding child id to list of ids
+        # adding id of child menu to list of ids
         path.append(child_id)
+        # obtaining child menu from database
         child_menu = menus.search(menu_query.id == child_id)[0]
+        # if the child menu has already been
+        # visited then this indicates a cycle
+        # and therefore we have an invalid menu
         if child_menu['visited']:
             valid_boolean = False
             # add_to_invalid_menus(path)
+
+        # if the child menu has no children of its
+        # own then we have reached the end along one
+        # specific branch and it is valid (we set its
+        # 'visited' status to True)
+        #
+        # if we get valid for all branches, then we
+        # have a valid menu
         elif len(child_menu['child_ids']) == 0:
             menus.update({'visited': True}, menu_query.id == child_id)
             valid_boolean = True
             # add_to_valid_menus(path)
+
+        # if the child menu has children of its
+        # own, then we recursively call check_children()
+        # on its children (we set the current child's
+        # 'visited' status to True)
         else:
             menus.update({'visited': True}, menu_query.id == child_id)
             check_children(menus.get(menu_query.id == child_id), path)
 
+    # returning a boolean indicating whether
+    # the menu is valid or invalid
     return valid_boolean
 
 
@@ -138,9 +185,9 @@ def purge():
 #     print(sys.argv[1])
 
 
-# first method that gets called
-# depending on command line argument
-# which is passed (either 1 or 2),
+# First method that gets called.
+# Depending on which command line
+# argument is passed (either 1 or 2),
 # output for challenge 1 or challenge 2
 # is produced
 def run():
