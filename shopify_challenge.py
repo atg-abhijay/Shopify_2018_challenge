@@ -18,13 +18,11 @@ def build_menus():
     # to identify the number of pages to
     # be visited
     iterations = extract_iterations()
-    # print(iterations)
     for page_num in range(1, iterations+1):
         # append page number to base_url
         # to get a specific page
         url = base_url + str(page_num)
         r = requests.get(url)
-        # print(r.status_code)
         data = r.json()
         menus_value = data['menus']
         for menu_entry in menus_value:
@@ -72,7 +70,9 @@ def generate_result():
             # add path to invalid_menus
             add_to_invalid_menus(path)
 
-    # menus.update({'visited': False})
+    # reset the field 'visited' to
+    # False for all the nodes
+    menus.update({'visited': False})
 
     # printing the final result
     pprint(result_json)
@@ -98,7 +98,6 @@ def check_children(menu, path):
         # and therefore we have an invalid menu
         if child_menu['visited']:
             valid_boolean = False
-            # add_to_invalid_menus(path)
 
         # if the child menu has no children of its
         # own then we have reached the end along one
@@ -110,7 +109,6 @@ def check_children(menu, path):
         elif len(child_menu['child_ids']) == 0:
             menus.update({'visited': True}, menu_query.id == child_id)
             valid_boolean = True
-            # add_to_valid_menus(path)
 
         # if the child menu has children of its
         # own, then we recursively call check_children()
@@ -167,38 +165,42 @@ def extract_iterations():
 def purge():
     menus.purge()
 
-# def test():
-#     x = 5
-#     y = 15
-#     num_iterations = math.ceil(y/x)
-#     print(num_iterations)
 
-#     for i in range(1, 2):
-#         print(i)
+# test method to experiment
+# different commands and
+# strategies
+def test():
+    x = 5
+    y = 15
+    num_iterations = math.ceil(y/x)
+    print(num_iterations)
 
-#     menu_query = Query()
-#     example_id = 2
-#     return_val = menus.update({'visited': True}, menu_query.id == example_id)[0]
-#     print(return_val)
+    for i in range(1, 2):
+        print(i)
 
-#     print(menus.get(menu_query.id == 2))
-#     print(sys.argv[1])
+    menu_query = Query()
+    example_id = 2
+    return_val = menus.update({'visited': True}, menu_query.id == example_id)[0]
+    print(return_val)
+
+    print(menus.get(menu_query.id == 2))
+    print(sys.argv[1])
 
 
 # First method that gets called.
 # Depending on which command line
 # argument is passed (either 1 or 2),
 # output for challenge 1 or challenge 2
-# is produced
+# (extra challenge) is produced
 def run():
     global base_url
     challenge_number = sys.argv[1]
     if challenge_number == "1":
         base_url = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=1&page="
-        # print(base_url)
+
     elif challenge_number == "2":
         base_url = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=2&page="
-        # print(base_url)
+
     else:
         print("Please enter either 1 or 2")
         sys.exit(1)
