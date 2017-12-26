@@ -1,7 +1,6 @@
-import sys
-import math
+import sys, requests
+from math import ceil
 from pprint import pprint
-import requests
 from tinydb import TinyDB, Query
 
 db = TinyDB('db.json')
@@ -9,11 +8,15 @@ menus = db.table('menus')
 result_json = {'valid_menus': [], 'invalid_menus': []}
 
 # url of the challenge without the page number value
-base_url = "url decided from run() method"
+# url decided from run() method
+base_url = ""
 
-# sending requests and
-# building the menus table
+
 def build_menus():
+    """
+    sending requests and
+    building the menus table
+    """
     # call the extract_iterations() method
     # to identify the number of pages to
     # be visited
@@ -22,7 +25,9 @@ def build_menus():
         # append page number to base_url
         # to get a specific page
         url = base_url + str(page_num)
+        print("Building menus...")
         r = requests.get(url)
+        print(r.status_code)
         data = r.json()
         menus_value = data['menus']
         for menu_entry in menus_value:
@@ -36,19 +41,23 @@ def build_menus():
     # (with the additional 'visited' field)
 
 
-# method where all the 'calculations' are
-# performed to identify valid and invalid menus
 def generate_result():
+    """
+    method where all the 'calculations' are
+    performed to identify valid and invalid menus
+    """
     # obtaining the top-level nodes
     # (menus without parent ids).
     # these nodes will serve as root nodes
 
-    # creating a query object
+    # creating a query object for the db
     menu_query = Query()
     # searching for entities in the
-    # menus table which do not have a
-    # parent_id field
+    # menus table which do NOT have a
+    # parent_id field. (the tilda '~'
+    # is for negating the query)
     top_nodes = menus.search(~ menu_query.parent_id.exists())
+    print("Generating results...")
     for menu in top_nodes:
         # list of ids forming a path
         path = []
@@ -62,6 +71,7 @@ def generate_result():
         # all the children rooted at the top_node and
         # returns a boolean value telling us whether
         # the menu is valid or invalid
+        print("Checking children...")
         isValid = check_children(menus.get(menu_query.id == updated_menu_id), path)
         if isValid:
             # add path to valid_menus
@@ -78,14 +88,16 @@ def generate_result():
     pprint(result_json)
 
 
-# traverses through the children of
-# any menu and appends the ids of the
-# visited menus to the path
-#
-# in the end it returns a boolean value
-# indicating whether the path denotes a
-# valid menu or an invalid menu
 def check_children(menu, path):
+    """
+    traverses through the children of
+    any menu and appends the ids of the
+    visited menus to the path
+
+    in the end it returns a boolean value
+    indicating whether the path denotes a
+    valid menu or an invalid menu
+    """
     valid_boolean = False
     menu_query = Query()
     for child_id in menu['child_ids']:
@@ -123,56 +135,64 @@ def check_children(menu, path):
     return valid_boolean
 
 
-# list of ids that constitute
-# an invalid menu. the first id
-# in the list is the root id
-# and the rest are the children id
 def add_to_invalid_menus(ids_list):
-    ids_list.sort()
+    """
+    list of ids that constitute
+    an invalid menu. the first id
+    in the list is the root id
+    and the rest are the children id
+    """
     invalids = result_json['invalid_menus']
     root_id = ids_list[0]
     children = ids_list[1:]
     invalids.append({'root_id': root_id, 'children': children})
 
 
-# list of ids that constitute
-# a valid menu. the first id
-# in the list is the root id
-# and the rest are the children id
 def add_to_valid_menus(ids_list):
-    ids_list.sort()
+    """
+    list of ids that constitute
+    a valid menu. the first id
+    in the list is the root id
+    and the rest are the children id
+    """
     valids = result_json['valid_menus']
     root_id = ids_list[0]
     children = ids_list[1:]
     valids.append({'root_id': root_id, 'children': children})
 
 
-# using the information from
-# 'pagination' to calculate the number
-# of pages to visit (iterations)
-# to get all the data
 def extract_iterations():
+    """
+    using the information from
+    'pagination' to calculate the number
+    of pages to visit (iterations)
+    to get all the data
+    """
     url = base_url + str(1)
     r = requests.get(url)
     data = r.json()
     pagination_data = data['pagination']
     per_page = pagination_data['per_page']
     total_items = pagination_data['total']
-    return math.ceil(total_items/per_page)
+    return ceil(total_items/per_page)
 
 
-# emptying the menus table
 def purge():
+    """
+    emptying the menus table
+    """
     menus.purge()
 
 
-# test method to experiment
-# different commands and
-# strategies
 def test():
+    """
+    test method to experiment
+    different commands and
+    strategies
+    """
     x = 5
     y = 15
-    num_iterations = math.ceil(y/x)
+    num_iterations = ceil(y/x)
     print(num_iterations)
 
     for i in range(1, 2):
@@ -187,12 +207,14 @@ def test():
     print(sys.argv[1])
 
 
-# First method that gets called.
-# Depending on which command line
-# argument is passed (either 1 or 2),
-# output for challenge 1 or challenge 2
-# (extra challenge) is produced
 def run():
+    """
+    First method that gets called.
+    Depending on which command line
+    argument is passed (either 1 or 2),
+    output for challenge 1 or challenge 2
+    (extra challenge) is produced
+    """
     global base_url
     challenge_number = sys.argv[1]
     if challenge_number == "1":
