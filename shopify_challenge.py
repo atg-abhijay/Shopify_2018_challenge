@@ -21,13 +21,12 @@ def build_menus():
     # to identify the number of pages to
     # be visited
     iterations = extract_iterations()
+    print("Building menus...")
     for page_num in range(1, iterations+1):
         # append page number to base_url
         # to get a specific page
         url = base_url + str(page_num)
-        print("Building menus...")
         r = requests.get(url)
-        print(r.status_code)
         data = r.json()
         menus_value = data['menus']
         for menu_entry in menus_value:
@@ -71,7 +70,6 @@ def generate_result():
         # all the children rooted at the top_node and
         # returns a boolean value telling us whether
         # the menu is valid or invalid
-        print("Checking children...")
         isValid = check_children(menus.get(menu_query.id == updated_menu_id), path)
         if isValid:
             # add path to valid_menus
