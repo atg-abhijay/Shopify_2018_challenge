@@ -1,6 +1,6 @@
-import sys, requests
 from math import ceil
 from pprint import pprint
+import sys, requests
 from tinydb import TinyDB, Query
 
 db = TinyDB('db.json')
