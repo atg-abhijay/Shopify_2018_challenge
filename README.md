@@ -1,4 +1,6 @@
 # Shopify_challenge
+    - Abhijay Gupta
+
     Tested using Python 3.6.1 and higher
 
     To install the requirements for the challenge, please execute
