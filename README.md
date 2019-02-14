@@ -1,4 +1,4 @@
-# Shopify_challenge
+# Shopify Developer Challenge (Summer 2018 Internship)
     - Abhijay Gupta
 
     Tested using Python 3.6.1 and higher
